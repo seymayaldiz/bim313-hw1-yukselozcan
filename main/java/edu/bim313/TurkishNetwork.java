@@ -1,4 +1,4 @@
-﻿package edu.bim313;
+package edu.bim313;
 
 
 public class TurkishNetwork {
