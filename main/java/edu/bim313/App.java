@@ -1,31 +1,83 @@
-package edu.bim313;
+package edu.ceng;
 
+import org.kohsuke.args4j.CmdLineException;
+import org.kohsuke.args4j.CmdLineParser;
+import org.kohsuke.args4j.Option;
 import org.paukov.combinatorics3.Generator;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 
-import static edu.bim313.TurkishNetwork.cities;
-import static edu.bim313.TurkishNetwork.distance;
+/**
+ * Main class
+ */
+public class Main {
 
+    @Option(name = "-n", required = true)
+    public int n;
 
-public class App {
+    @Option(name = "-p", required = true)
+    public String p;
+
+    public Main(String[] args) throws CmdLineException {
+        CmdLineParser parser = new CmdLineParser(Main.this);
+        parser.parseArgument(args);
+    }
+
     public static void main(String[] args) {
-        List<List<String>> combinations = Generator.combination(cities).simple(3).stream().collect(Collectors.toList());
-        for (int i = 0; i < combinations.size(); i++) {
-            List<String> control = new ArrayList<>();
-            for (int j = 0; j < 3; j++) {
-                control.add(combinations.get(i).get(j));
-            }
-            int m1 = Arrays.asList(cities).indexOf(control.get(0));
-            int m2 = Arrays.asList(cities).indexOf(control.get(1));
-            int m3 = Arrays.asList(cities).indexOf(control.get(2));
-            if (((distance[m1][m2] + distance[m1][m3]) <= distance[m2][m3]) || ((distance[m1][m2] + distance[m2][m3]) <= distance[m1][m3]) || (((distance[m1][m3] + distance[m2][m3]) <= distance[m1][m2]))) {
-                System.out.println( cities[m1] + " " + cities[m2] + " " + cities[m3]);
-            }
+        try {
+            Main main = new Main(args);
+            main.getData();
+            System.exit(0);
+        } catch (CmdLineException e) {
+            System.exit(1);
         }
 
+    }
+
+    public void getData() {
+		if (n < 2) throw new IllegalArgumentException();
+		else if (n > 81) throw new IllegalArgumentException();
+		else {
+			try {
+				String text = this.p.toUpperCase();
+				P p = P.valueOf(text);
+				System.out.println(find(n, p));
+			} catch (IllegalArgumentException e) {
+				System.exit(1);
+			}
+		}
+    }
+
+
+    private static Route find(int n, P p) {
+        switch (p) {
+            case SHORTEST:
+                return findShortest(n);
+            case LONGEST:
+                return findLongest(n);
+            default:
+                throw new AssertionError(p);
+        }
+
+    }
+
+    static Route findLongest(int n) {
+        Optional<Route> max = Generator.combination(IntStream.rangeClosed(0, 80).boxed().collect(Collectors.toList()))
+                .simple(n)
+                .stream()
+                .map(Route::new)
+                .max((c1, c2) -> c1.distance() - c2.distance());
+        return max.get();
+    }
+
+    static Route findShortest(int n) {
+        Optional<Route> max = Generator.combination(IntStream.rangeClosed(0, 80).boxed().collect(Collectors.toList()))
+                .simple(n)
+                .stream()
+                .map(Route::new)
+                .min((c1, c2) -> c1.distance() - c2.distance());
+        return max.get();
     }
 }
